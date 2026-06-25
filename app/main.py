@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 try:
@@ -16,6 +20,7 @@ if load_dotenv:
     load_dotenv(override=True)
 
 app = FastAPI(title="AI Anki Workbench", version="0.1.0")
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,3 +44,12 @@ def health() -> dict[str, str]:
 app.include_router(documents.router)
 app.include_router(cards.router)
 app.include_router(anki.router)
+
+
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def index() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html")

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Anki Workbench</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">A</div>
+          <div>
+            <h1>AI Anki</h1>
+            <p>从文本到可审核卡片</p>
+          </div>
+        </div>
+
+        <button class="primary full" id="refreshButton" type="button">刷新数据</button>
+
+        <section class="side-section">
+          <div class="side-title">
+            <span>文档</span>
+            <span id="documentCount">0</span>
+          </div>
+          <div class="document-list" id="documentList"></div>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <nav class="tabs" aria-label="工作区">
+            <button class="tab active" data-tab="create" type="button">新建任务</button>
+            <button class="tab" data-tab="review" type="button">审核卡片</button>
+            <button class="tab" data-tab="sync" type="button">同步 Anki</button>
+          </nav>
+          <div class="status-pill" id="apiStatus">API 检查中</div>
+        </header>
+
+        <div class="notice hidden" id="notice"></div>
+
+        <section class="panel active" id="panel-create">
+          <div class="panel-head">
+            <div>
+              <h2>新建制卡任务</h2>
+              <p>粘贴清洗后的文本，系统会抽取知识点、制卡并进行 90 分质量门控。</p>
+            </div>
+          </div>
+
+          <form class="form-grid" id="documentForm">
+            <label>
+              <span>标题</span>
+              <input id="titleInput" name="title" required placeholder="例如：SQL DDL 隐式提交">
+            </label>
+            <label>
+              <span>文本类型</span>
+              <select id="sourceTypeInput" name="source_type">
+                <option value="note">笔记</option>
+                <option value="article">文章</option>
+                <option value="code">代码</option>
+                <option value="interview">面试</option>
+                <option value="manual">手册</option>
+              </select>
+            </label>
+            <label>
+              <span>目标 Deck</span>
+              <input id="deckInput" name="deck_name" value="Default">
+            </label>
+            <label>
+              <span>标签</span>
+              <input id="tagsInput" name="tags" value="ai::generated" placeholder="逗号分隔">
+            </label>
+            <label class="wide">
+              <span>原始内容</span>
+              <textarea id="contentInput" name="content" required placeholder="粘贴文章、笔记、代码片段或面试记录"></textarea>
+            </label>
+            <div class="wide actions-row">
+              <button class="primary" id="generateButton" type="submit">生成卡片</button>
+              <span class="muted" id="generateHint">短文本会直接制卡；复制来的 Markdown/列表符号会先清洗。</span>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="panel-review">
+          <div class="panel-head">
+            <div>
+              <h2>审核卡片</h2>
+              <p id="selectedDocumentLabel">请选择左侧文档。</p>
+            </div>
+            <div class="toolbar">
+              <select id="statusFilter">
+                <option value="">全部状态</option>
+                <option value="draft">草稿</option>
+                <option value="approved">已批准</option>
+                <option value="rejected">已拒绝</option>
+                <option value="synced">已同步</option>
+              </select>
+              <button id="approveHighQualityButton" type="button">批准 90+ 草稿</button>
+            </div>
+          </div>
+
+          <div class="metrics">
+            <div><span id="metricDraft">0</span><label>草稿</label></div>
+            <div><span id="metricApproved">0</span><label>已批准</label></div>
+            <div><span id="metricRejected">0</span><label>已拒绝</label></div>
+            <div><span id="metricSynced">0</span><label>已同步</label></div>
+          </div>
+
+          <div class="card-list" id="cardList"></div>
+        </section>
+
+        <section class="panel" id="panel-sync">
+          <div class="panel-head">
+            <div>
+              <h2>同步到 Anki</h2>
+              <p>使用 AnkiConnect，把已批准卡片写入当前 Anki 桌面端。</p>
+            </div>
+          </div>
+
+          <div class="sync-layout">
+            <div class="sync-form">
+              <label>
+                <span>Anki Deck</span>
+                <select id="ankiDeckSelect"></select>
+              </label>
+              <label>
+                <span>Note Type</span>
+                <select id="ankiModelSelect"></select>
+              </label>
+              <label class="checkbox-line">
+                <input id="allowLowQualityInput" type="checkbox">
+                <span>允许同步质量分低于 90 的卡片</span>
+              </label>
+              <button class="primary" id="syncButton" type="button">同步已批准卡片</button>
+            </div>
+            <div class="sync-summary">
+              <div class="big-number" id="approvedSyncCount">0</div>
+              <span>待同步卡片</span>
+              <p id="syncHelp">请先在审核页批准卡片。</p>
+            </div>
+          </div>
+
+          <div class="result-list" id="syncResults"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

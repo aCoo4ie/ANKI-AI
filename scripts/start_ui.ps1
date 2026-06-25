@@ -1,6 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $envPath = Join-Path (Get-Location) ".env"
+$apiBase = "http://127.0.0.1:8008"
 
 if (Test-Path -LiteralPath $envPath) {
     Get-Content -LiteralPath $envPath | ForEach-Object {
@@ -10,13 +11,12 @@ if (Test-Path -LiteralPath $envPath) {
         }
 
         $name, $value = $line.Split("=", 2)
-        [Environment]::SetEnvironmentVariable($name.Trim(), $value.Trim().Trim('"').Trim("'"), "Process")
+        if ($name.Trim() -eq "AI_ANKI_API_BASE") {
+            $apiBase = $value.Trim().Trim('"').Trim("'")
+        }
     }
 }
 
-$python = Join-Path (Get-Location) ".venv\Scripts\python.exe"
-if (-not (Test-Path -LiteralPath $python)) {
-    $python = "python"
-}
-
-& $python -m streamlit run ui/streamlit_app.py --server.address 127.0.0.1 --server.port 8501
+Write-Host "HTML frontend is served by FastAPI."
+Write-Host "Start backend with: .\scripts\start_backend.ps1"
+Write-Host "Then open: $apiBase"
